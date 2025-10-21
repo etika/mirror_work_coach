@@ -1,7 +1,7 @@
 gradio==4.44.0
 langchain==0.3.4
 langchain-openai==0.2.3
-langchain-community==0.0.256
+langchain-community==0.3.31
 openai==1.56.1
 tiktoken
 fastapi
