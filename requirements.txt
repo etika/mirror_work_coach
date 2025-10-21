@@ -1,5 +1,5 @@
-# Gradio UI
-gradio>=4.44,<5
+# Gradio UI (locked to stable version to avoid type errors)
+gradio==4.41.2
 
 # LangChain core and OpenAI wrapper
 langchain>=0.3.4,<0.4
