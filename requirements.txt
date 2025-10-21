@@ -1,9 +1,20 @@
-gradio==4.44.0
-langchain==0.3.4
-langchain-openai==0.2.3
-langchain-community==0.3.31
-openai==1.56.1
+# Gradio for UI
+gradio>=4.44,<5
+
+# LangChain core and OpenAI wrapper
+langchain>=0.3.4,<0.4
+langchain-openai>=0.2.3,<0.3
+
+# Community modules required by LangChain
+langchain-community>=0.3.31,<0.4
+
+# OpenAI API client
+openai>=1.56.1,<2
+
+# Tokenizer for LangChain/OpenAI
 tiktoken
+
+# Optional: FastAPI + Uvicorn for deployment flexibility
 fastapi
 uvicorn
 

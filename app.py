@@ -3,7 +3,7 @@ import gradio as gr
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 
-# --- Load OpenAI API key from environment ---
+# --- Load OpenAI API key ---
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 if not OPENAI_API_KEY:
     raise ValueError("Please set the OPENAI_API_KEY environment variable.")
@@ -46,7 +46,7 @@ with gr.Blocks() as demo:
         chat_history.append((msg, response))
         return "", chat_history
 
-    # Browser handles text-to-speech
+    # Browser-based text-to-speech (no pydub needed)
     txt.submit(respond, [txt, chatbot], [txt, chatbot], text_to_speech=True)
 
 # --- Dynamic port for Render ---
