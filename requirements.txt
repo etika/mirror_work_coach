@@ -1,4 +1,4 @@
-# Gradio for UI
+# Gradio UI
 gradio>=4.44,<5
 
 # LangChain core and OpenAI wrapper

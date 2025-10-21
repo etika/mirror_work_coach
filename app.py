@@ -1,6 +1,6 @@
 import os
 import gradio as gr
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 
 # --- Load OpenAI API key ---
@@ -46,8 +46,8 @@ with gr.Blocks() as demo:
         chat_history.append((msg, response))
         return "", chat_history
 
-    # Browser-based text-to-speech (no pydub needed)
-    txt.submit(respond, [txt, chatbot], [txt, chatbot], text_to_speech=True)
+    # Removed text_to_speech to avoid Gradio crash
+    txt.submit(respond, [txt, chatbot], [txt, chatbot])
 
 # --- Dynamic port for Render ---
 port = int(os.environ.get("PORT", 8080))
