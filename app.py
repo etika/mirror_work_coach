@@ -1,33 +1,24 @@
 import gradio as gr
 from transformers import pipeline
 
-# Load a small local model for CPU
-# For production, you can pick a small instruction-tuned model like "ehartford/WizardLM-7B-1.0-GPTQ-4bit" if you have GPU,
-# or a tiny CPU-friendly model like "google/flan-t5-small"
-# Here we use flan-t5-small for CPU usage
-summarizer = pipeline("text2text-generation", model="google/flan-t5-small", device=-1)
+# Use a tiny model to stay within Render 512MB
+coach = pipeline("text-generation", model="distilgpt2", device=-1)
 
 def mirror_work_coach(prompt):
-    """
-    Generates mirror work affirmations or self-love guidance
-    """
     if not prompt.strip():
-        return "Please enter your prompt or intention!"
-
+        return "Please enter a feeling or thought to reflect on."
     try:
-        # Use model to generate guidance
-        result = summarizer(f"Give a mirror work affirmation for: {prompt}", max_length=150)
-        return result[0]['generated_text']
+        res = coach(f"Mirror work affirmation for: {prompt}\nAffirmation:", max_length=80, num_return_sequences=1)
+        return res[0]['generated_text']
     except Exception as e:
-        return f"Error generating response: {e}"
+        return f"Error: {e}"
 
-# Gradio interface
 iface = gr.Interface(
     fn=mirror_work_coach,
-    inputs=gr.Textbox(label="Your intention or feeling", placeholder="I feel stressed..."),
-    outputs=gr.Textbox(label="Mirror Work Guidance"),
-    title="Mirror Work Coach",
-    description="Enter a feeling or intention and get a self-love affirmation. Runs entirely on CPU!"
+    inputs=gr.Textbox(label="What are you feeling today?", placeholder="I feel anxious about my future..."),
+    outputs=gr.Textbox(label="Mirror Work Affirmation"),
+    title="🪞 Mirror Work Coach",
+    description="A gentle mirror work coach that generates self-love affirmations (CPU + free-tier friendly)."
 )
 
 if __name__ == "__main__":
