@@ -1,55 +1,39 @@
 import os
-import gradio as gr
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
+from gradio import Textbox, Chatbot, Blocks
 
-# --- Load OpenAI API key ---
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-if not OPENAI_API_KEY:
-    raise ValueError("Please set the OPENAI_API_KEY environment variable.")
-
-# --- LLM setup ---
+# Initialize your LLM
 llm = ChatOpenAI(
-    model="gpt-4o-mini",
     temperature=0.7,
-    openai_api_key=OPENAI_API_KEY
+    model_name="gpt-3.5-turbo"  # change if needed
 )
 
-# --- Conversation memory ---
+# Initialize conversation memory
 memory = ConversationBufferMemory(input_key="input", output_key="output")
 
-# --- Mirror Work Coach logic ---
-def mirror_coach(user_input):
-    context = memory.load_memory_variables({}).get("history", "")
-    prompt = f"""
-You are a calm and compassionate mirror work coach.
-Encourage the user to practice self-love and gentle reflection.
+# Dummy respond function
+def respond(user_input, chat_history):
+    # Replace with actual LangChain logic
+    response = f"Echo: {user_input}"
+    chat_history.append((user_input, response))
+    return "", chat_history
 
-Conversation so far:
-{context}
-
-User: {user_input}
-Coach:
-"""
-    response = llm.predict(prompt).strip()
-    memory.save_context({"input": user_input}, {"output": response})
-    return response
-
-# --- Gradio UI ---
-with gr.Blocks() as demo:
-    gr.Markdown("## 🪞 Mirror Work AI Coach")
-    chatbot = gr.Chatbot()
-    txt = gr.Textbox(label="Type your message here")
-
-    def respond(msg, chat_history):
-        response = mirror_coach(msg)
-        chat_history.append((msg, response))
-        return "", chat_history
-
-    # Removed text_to_speech to avoid Gradio crash
+# Gradio UI
+with Blocks() as demo:
+    txt = Textbox(label="Your Message")
+    chatbot = Chatbot(label="Chat History")
+    
+    # Wire the submit event
     txt.submit(respond, [txt, chatbot], [txt, chatbot])
 
-# --- Dynamic port for Render ---
-port = int(os.environ.get("PORT", 8080))
-demo.launch(server_name="0.0.0.0", server_port=port)
+# Server port for Render
+port = int(os.environ.get("PORT", 10000))
+
+# Launch Gradio with shareable link for Render
+demo.launch(
+    server_name="0.0.0.0",
+    server_port=port,
+    share=True
+)
 
