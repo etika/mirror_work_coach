@@ -1,41 +1,38 @@
 import os
-from langchain.chat_models import ChatOpenAI
-from langchain.memory import ConversationBufferMemory
-from langchain.chains import ConversationChain
+import openai
 import gradio as gr
 
-# --- Environment Variables ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Get your OpenAI API key from environment variables
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# --- LLM Setup ---
-llm = ChatOpenAI(
-    model_name="gpt-3.5-turbo",
-    temperature=0.7,
-    openai_api_key=OPENAI_API_KEY
-)
-
-memory = ConversationBufferMemory(input_key="input", output_key="output")
-
-conversation = ConversationChain(
-    llm=llm,
-    memory=memory,
-    verbose=True
-)
-
-# --- Gradio UI ---
-def respond(user_input):
-    return conversation.run(user_input)
-
-with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
-    txt = gr.Textbox(label="Type your message")
-    txt.submit(respond, inputs=txt, outputs=chatbot)
+def chat_with_gpt(prompt):
+    """
+    Simple function to get response from OpenAI's GPT-3.5/4 API
+    """
+    if not prompt:
+        return "Please enter a prompt!"
     
-    # Optional: Clear chat button
-    clear_btn = gr.Button("Clear Chat")
-    clear_btn.click(lambda: None, None, chatbot, queue=False)
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=300
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"Error: {e}"
 
-# --- Launch App ---
-port = int(os.environ.get("PORT", 10000))
-demo.launch(server_name="0.0.0.0", server_port=port, share=True)
+# Create Gradio Interface
+demo = gr.Interface(
+    fn=chat_with_gpt,
+    inputs=gr.Textbox(label="Enter your prompt here"),
+    outputs=gr.Textbox(label="GPT Response"),
+    title="Simple LLM Chat App",
+    description="A minimal OpenAI GPT chat app ready for Render deployment."
+)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))  # Render sets PORT automatically
+    demo.launch(server_name="0.0.0.0", server_port=port, share=True)
 
