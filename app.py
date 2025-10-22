@@ -1,39 +1,46 @@
-import os
 import gradio as gr
-from openai import OpenAI
+from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
-# Initialize client with API key
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Use a small CPU-friendly model
+MODEL_NAME = "distilgpt2"
 
-def chat_with_gpt(prompt):
+# Load tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
+
+# Create a pipeline for text generation
+generator = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    device=-1  # CPU-only
+)
+
+def chat_with_model(prompt):
     """
-    Simple function to get response from OpenAI's GPT-3.5/4 API using the new 1.0+ interface
+    Generate response from distilgpt2 (CPU-friendly).
     """
-    if not prompt:
+    if not prompt.strip():
         return "Please enter a prompt!"
     
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.7,
-            max_tokens=300
-        )
-        return response.choices[0].message.content.strip()
+        # Generate text with reasonable limits
+        outputs = generator(prompt, max_length=150, do_sample=True, temperature=0.7)
+        return outputs[0]['generated_text']
     except Exception as e:
         return f"Error: {e}"
 
-# Create Gradio Interface
-demo = gr.Interface(
-    fn=chat_with_gpt,
+# Gradio interface
+iface = gr.Interface(
+    fn=chat_with_model,
     inputs=gr.Textbox(label="Enter your prompt here"),
-    outputs=gr.Textbox(label="GPT Response"),
-    title="Simple LLM Chat App",
-    description="A minimal OpenAI GPT chat app compatible with the latest API."
+    outputs=gr.Textbox(label="Model Response"),
+    title="CPU-Friendly LLM Chat App",
+    description="A lightweight text generation app using distilgpt2, ready for Render deployment."
 )
 
 if __name__ == "__main__":
     import os
-    port = int(os.environ.get("PORT", 10000))  # Render sets PORT automatically
-    demo.launch(server_name="0.0.0.0", server_port=port, share=True)
+    port = int(os.environ.get("PORT", 7860))
+    iface.launch(server_name="0.0.0.0", server_port=port)
 
