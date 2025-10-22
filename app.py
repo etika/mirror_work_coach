@@ -1,50 +1,30 @@
+# app.py
 import os
-from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
-from langchain.prompts import PromptTemplate
+from langchain.chains import ConversationChain
 import gradio as gr
 
-# Load environment variables (like OPENAI_API_KEY)
-load_dotenv()
+# Set your OpenAI API key
+os.environ["OPENAI_API_KEY"] = "YOUR_OPENAI_API_KEY"
 
-# Initialize LLM
-llm = ChatOpenAI(
-    model_name="gpt-3.5-turbo",
-    temperature=0.7,
-    openai_api_key=os.getenv("OPENAI_API_KEY")
-)
+# Initialize LLM and memory
+llm = ChatOpenAI(temperature=0.7, model_name="gpt-3.5-turbo")
+memory = ConversationBufferMemory(input_key="input", output_key="output")
+conversation = ConversationChain(llm=llm, memory=memory)
 
-# Conversation memory
-memory = ConversationBufferMemory(input_key="input", output_key="output", memory_key="chat_history")
+# Define respond function
+def respond(user_input):
+    response = conversation.predict(input=user_input)
+    return response
 
-# Simple prompt template
-template = """The following is a conversation with an AI assistant.
-{chat_history}
-Human: {input}
-AI:"""
-
-prompt = PromptTemplate(
-    input_variables=["chat_history", "input"],
-    template=template
-)
-
-def respond(user_input, chat_history):
-    # Generate AI response
-    formatted_prompt = prompt.format(chat_history=chat_history or "", input=user_input)
-    response = llm(formatted_prompt)
-    if chat_history is None:
-        chat_history = ""
-    chat_history += f"Human: {user_input}\nAI: {response}\n"
-    return chat_history, chat_history
-
-# Gradio interface
+# Build Gradio interface
 with gr.Blocks() as demo:
-    chatbot = gr.Chatbot()
-    txt = gr.Textbox(label="Your message")
-    txt.submit(respond, [txt, chatbot], [txt, chatbot])
+    txt = gr.Textbox(label="Your Message")
+    output = gr.Textbox(label="AI Response")
+    txt.submit(respond, txt, output)
 
-# Launch with share=True for Render
+# Use server_name="0.0.0.0" for Render, share=True for public link
 port = int(os.environ.get("PORT", 10000))
 demo.launch(server_name="0.0.0.0", server_port=port, share=True)
 
