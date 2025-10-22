@@ -1,42 +1,33 @@
 import gradio as gr
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+from transformers import pipeline
 
-# Use a small CPU-friendly model
-MODEL_NAME = "distilgpt2"
+# Load a small local model for CPU
+# For production, you can pick a small instruction-tuned model like "ehartford/WizardLM-7B-1.0-GPTQ-4bit" if you have GPU,
+# or a tiny CPU-friendly model like "google/flan-t5-small"
+# Here we use flan-t5-small for CPU usage
+summarizer = pipeline("text2text-generation", model="google/flan-t5-small", device=-1)
 
-# Load tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME)
-
-# Create a pipeline for text generation
-generator = pipeline(
-    "text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    device=-1  # CPU-only
-)
-
-def chat_with_model(prompt):
+def mirror_work_coach(prompt):
     """
-    Generate response from distilgpt2 (CPU-friendly).
+    Generates mirror work affirmations or self-love guidance
     """
     if not prompt.strip():
-        return "Please enter a prompt!"
-    
+        return "Please enter your prompt or intention!"
+
     try:
-        # Generate text with reasonable limits
-        outputs = generator(prompt, max_length=150, do_sample=True, temperature=0.7)
-        return outputs[0]['generated_text']
+        # Use model to generate guidance
+        result = summarizer(f"Give a mirror work affirmation for: {prompt}", max_length=150)
+        return result[0]['generated_text']
     except Exception as e:
-        return f"Error: {e}"
+        return f"Error generating response: {e}"
 
 # Gradio interface
 iface = gr.Interface(
-    fn=chat_with_model,
-    inputs=gr.Textbox(label="Enter your prompt here"),
-    outputs=gr.Textbox(label="Model Response"),
-    title="CPU-Friendly LLM Chat App",
-    description="A lightweight text generation app using distilgpt2, ready for Render deployment."
+    fn=mirror_work_coach,
+    inputs=gr.Textbox(label="Your intention or feeling", placeholder="I feel stressed..."),
+    outputs=gr.Textbox(label="Mirror Work Guidance"),
+    title="Mirror Work Coach",
+    description="Enter a feeling or intention and get a self-love affirmation. Runs entirely on CPU!"
 )
 
 if __name__ == "__main__":
