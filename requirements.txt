@@ -1,9 +1,15 @@
-gradio==5.3.0
-langchain>=0.3.4,<0.4
-langchain-openai>=0.2.3,<0.3
-langchain-community>=0.3.31,<0.4
-openai>=1.56.1,<2
-tiktoken
-fastapi
-uvicorn
+# Core
+python-dotenv==1.0.1
+openai==1.8.3
+
+# LangChain
+langchain==0.1.242
+langchain-openai==0.0.17
+
+# Gradio stable versions
+gradio==4.49.0
+gradio-client==0.4.0
+
+# Optional
+requests==2.31.0
 
