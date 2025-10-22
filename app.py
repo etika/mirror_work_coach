@@ -1,30 +1,43 @@
-# app.py
-import os
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationChain
 import gradio as gr
 
-# Set your OpenAI API key
-os.environ["OPENAI_API_KEY"] = "YOUR_OPENAI_API_KEY"
+# Initialize ChatOpenAI model
+llm = ChatOpenAI(
+    temperature=0.7,
+    model_name="gpt-3.5-turbo"  # change to "gpt-4" if you have access
+)
 
-# Initialize LLM and memory
-llm = ChatOpenAI(temperature=0.7, model_name="gpt-3.5-turbo")
-memory = ConversationBufferMemory(input_key="input", output_key="output")
-conversation = ConversationChain(llm=llm, memory=memory)
+# Memory to maintain conversation context
+memory = ConversationBufferMemory(
+    input_key="input",
+    output_key="output"
+)
 
-# Define respond function
+# Conversation chain
+conversation = ConversationChain(
+    llm=llm,
+    memory=memory
+)
+
+# Function to handle user input
 def respond(user_input):
-    response = conversation.predict(input=user_input)
-    return response
+    return conversation.run(user_input)
 
-# Build Gradio interface
+# Gradio interface
 with gr.Blocks() as demo:
-    txt = gr.Textbox(label="Your Message")
-    output = gr.Textbox(label="AI Response")
-    txt.submit(respond, txt, output)
+    chatbot = gr.Chatbot()
+    txt = gr.Textbox(
+        label="Your Message",
+        placeholder="Type something..."
+    )
+    txt.submit(respond, inputs=txt, outputs=chatbot)
 
-# Use server_name="0.0.0.0" for Render, share=True for public link
-port = int(os.environ.get("PORT", 10000))
-demo.launch(server_name="0.0.0.0", server_port=port, share=True)
+# Launch on Render
+demo.launch(
+    server_name="0.0.0.0",
+    server_port=10000,
+    share=True  # required on Render for external access
+)
 
